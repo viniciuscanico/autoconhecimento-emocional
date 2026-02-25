@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Calendar, Activity, BarChart3 } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
+import NotificationManager from './utils/notificationManager';
+window.NotificationManager = NotificationManager;
 
 const MoodTracker = () => {
   const [activeTab, setActiveTab] = useState('register');
@@ -18,6 +20,8 @@ const MoodTracker = () => {
   const [reminderInterval, setReminderInterval] = useState(3);
   const [reminderStartTime, setReminderStartTime] = useState('08:00');
   const [reminderEndTime, setReminderEndTime] = useState('22:00');
+  const [notificationPermission, setNotificationPermission] = useState('default');
+  const [notificationPreset, setNotificationPreset] = useState('3x');
 
   // Load entries from localStorage on mount
   useEffect(() => {
@@ -40,6 +44,30 @@ const MoodTracker = () => {
       console.error('Error loading data:', error);
     }
   }, []);
+
+  // Initialize notifications on mount
+useEffect(() => {
+  const initNotifications = async () => {
+    const permission = NotificationManager.getPermissionStatus();
+    setNotificationPermission(permission);
+
+    const savedPreset = localStorage.getItem('notificationPreset') || '3x';
+    setNotificationPreset(savedPreset);
+
+    if (permission === 'default') {
+      const granted = await NotificationManager.requestPermission();
+      setNotificationPermission(granted ? 'granted' : 'denied');
+      
+      if (granted) {
+        NotificationManager.scheduleNotifications(NotificationManager.getDefaultSettings());
+      }
+    } else if (permission === 'granted') {
+      NotificationManager.init();
+    }
+  };
+
+  initNotifications();
+}, []);
 
   // 9 MAIN EMOTIONS (4 positive + 1 neutral + 4 negative)
   const mainMoods = [
@@ -812,12 +840,12 @@ const MoodTracker = () => {
           </div>
         </div>
 
-        {/* SETTINGS MODAL */}
+       {/* SETTINGS MODAL */}
         {showSettings && (
           <div className="absolute inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-            <div className="bg-white rounded-2xl p-6 w-full max-w-sm shadow-2xl">
+            <div className="bg-white rounded-2xl p-6 w-full max-w-sm shadow-2xl max-h-[600px] overflow-y-auto">
               <div className="flex items-center justify-between mb-6">
-                <h3 className="text-lg font-bold text-gray-800">Configurações</h3>
+                <h3 className="text-lg font-bold text-gray-800">Configurações de Lembretes</h3>
                 <button 
                   onClick={() => setShowSettings(false)}
                   className="w-8 h-8 rounded-full hover:bg-gray-100 flex items-center justify-center"
@@ -827,87 +855,237 @@ const MoodTracker = () => {
               </div>
 
               <div className="space-y-6">
-                {/* Toggle Lembretes */}
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="font-semibold text-gray-800 text-sm">Lembretes</p>
-                    <p className="text-xs text-gray-500">Receber notificações</p>
+                {/* Status de Permissão */}
+                {notificationPermission === 'denied' && (
+                  <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+                    <p className="text-sm text-red-800">
+                      ⚠️ Notificações bloqueadas pelo navegador. 
+                      Ative nas configurações do seu navegador.
+                    </p>
                   </div>
-                  <button
-                    onClick={() => setRemindersEnabled(!remindersEnabled)}
-                    className={`relative w-12 h-6 rounded-full transition-colors ${
-                      remindersEnabled ? 'bg-gradient-to-r from-rose-500 to-orange-500' : 'bg-gray-300'
-                    }`}
-                  >
-                    <div className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full transition-transform ${
-                      remindersEnabled ? 'translate-x-6' : 'translate-x-0'
-                    }`} />
-                  </button>
-                </div>
+                )}
 
-                {/* Intervalo Slider */}
-                {remindersEnabled && (
+                {notificationPermission === 'default' && (
+                  <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
+                    <p className="text-sm text-amber-800 mb-2">
+                      📬 Precisamos da sua permissão para enviar lembretes
+                    </p>
+                    <button
+                      onClick={async () => {
+                        const granted = await NotificationManager.requestPermission();
+                        setNotificationPermission(granted ? 'granted' : 'denied');
+                      }}
+                      className="w-full py-2 bg-amber-500 text-white rounded-lg text-sm font-semibold hover:bg-amber-600"
+                    >
+                      Permitir Notificações
+                    </button>
+                  </div>
+                )}
+
+                {/* Frequência de Notificações */}
+                {notificationPermission === 'granted' && (
                   <>
                     <div>
-                      <label className="block font-semibold text-gray-800 text-sm mb-2">
-                        Intervalo: {reminderInterval}h
+                      <label className="block font-semibold text-gray-800 text-sm mb-3">
+                        Frequência de Lembretes
                       </label>
-                      <input
-                        type="range"
-                        min="1"
-                        max="8"
-                        value={reminderInterval}
-                        onChange={(e) => setReminderInterval(parseInt(e.target.value))}
-                        className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-orange-500"
-                      />
-                      <div className="flex justify-between text-xs text-gray-500 mt-1">
-                        <span>1h</span>
-                        <span>8h</span>
+                      <div className="space-y-2">
+                        {/* 3x ao dia - Recomendado */}
+                        <button
+                          onClick={() => setNotificationPreset('3x')}
+                          className={`w-full p-3 rounded-lg border-2 text-left transition-all ${
+                            notificationPreset === '3x'
+                              ? 'border-orange-500 bg-orange-50'
+                              : 'border-gray-200 hover:border-gray-300'
+                          }`}
+                        >
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <div className="font-semibold text-sm">3x ao dia 🌟</div>
+                              <div className="text-xs text-gray-500">Manhã (8h), Tarde (14h), Noite (20h)</div>
+                            </div>
+                            {notificationPreset === '3x' && (
+                              <span className="text-orange-500">✓</span>
+                            )}
+                          </div>
+                        </button>
+
+                        {/* 2x ao dia */}
+                        <button
+                          onClick={() => setNotificationPreset('2x')}
+                          className={`w-full p-3 rounded-lg border-2 text-left transition-all ${
+                            notificationPreset === '2x'
+                              ? 'border-orange-500 bg-orange-50'
+                              : 'border-gray-200 hover:border-gray-300'
+                          }`}
+                        >
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <div className="font-semibold text-sm">2x ao dia</div>
+                              <div className="text-xs text-gray-500">Meio-dia (12h), Noite (20h)</div>
+                            </div>
+                            {notificationPreset === '2x' && (
+                              <span className="text-orange-500">✓</span>
+                            )}
+                          </div>
+                        </button>
+
+                        {/* 1x ao dia */}
+                        <button
+                          onClick={() => setNotificationPreset('1x')}
+                          className={`w-full p-3 rounded-lg border-2 text-left transition-all ${
+                            notificationPreset === '1x'
+                              ? 'border-orange-500 bg-orange-50'
+                              : 'border-gray-200 hover:border-gray-300'
+                          }`}
+                        >
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <div className="font-semibold text-sm">1x ao dia</div>
+                              <div className="text-xs text-gray-500">Noite (20h)</div>
+                            </div>
+                            {notificationPreset === '1x' && (
+                              <span className="text-orange-500">✓</span>
+                            )}
+                          </div>
+                        </button>
+
+                        {/* Personalizado */}
+                        <button
+                          onClick={() => setNotificationPreset('custom')}
+                          className={`w-full p-3 rounded-lg border-2 text-left transition-all ${
+                            notificationPreset === 'custom'
+                              ? 'border-orange-500 bg-orange-50'
+                              : 'border-gray-200 hover:border-gray-300'
+                          }`}
+                        >
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <div className="font-semibold text-sm">Personalizado ⚙️</div>
+                              <div className="text-xs text-gray-500">Configure seus próprios horários</div>
+                            </div>
+                            {notificationPreset === 'custom' && (
+                              <span className="text-orange-500">✓</span>
+                            )}
+                          </div>
+                        </button>
+
+                        {/* Desligado */}
+                        <button
+                          onClick={() => setNotificationPreset('off')}
+                          className={`w-full p-3 rounded-lg border-2 text-left transition-all ${
+                            notificationPreset === 'off'
+                              ? 'border-gray-400 bg-gray-50'
+                              : 'border-gray-200 hover:border-gray-300'
+                          }`}
+                        >
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <div className="font-semibold text-sm">Desligado</div>
+                              <div className="text-xs text-gray-500">Você pode registrar manualmente quando quiser</div>
+                            </div>
+                            {notificationPreset === 'off' && (
+                              <span className="text-gray-500">✓</span>
+                            )}
+                          </div>
+                        </button>
                       </div>
                     </div>
 
-                    {/* Horário Ativo */}
-                    <div>
-                      <p className="font-semibold text-gray-800 text-sm mb-3">Horário Ativo</p>
-                      <div className="grid grid-cols-2 gap-3">
+                    {/* Configuração Personalizada */}
+                    {notificationPreset === 'custom' && (
+                      <div className="bg-gray-50 rounded-lg p-4 space-y-3">
+                        <p className="text-sm font-semibold text-gray-700">Horários Personalizados</p>
+                        
                         <div>
-                          <label className="block text-xs text-gray-600 mb-1">Início</label>
-                          <input
-                            type="time"
-                            value={reminderStartTime}
-                            onChange={(e) => setReminderStartTime(e.target.value)}
+                          <label className="block text-xs text-gray-600 mb-1">Intervalo entre lembretes</label>
+                          <select
+                            value={reminderInterval}
+                            onChange={(e) => setReminderInterval(parseFloat(e.target.value))}
                             className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
-                          />
+                          >
+                            <option value={0.25}>A cada 15 minutos</option>
+                            <option value={0.5}>A cada 30 minutos</option>
+                            <option value={1}>A cada 1 hora</option>
+                            <option value={2}>A cada 2 horas</option>
+                            <option value={3}>A cada 3 horas</option>
+                            <option value={4}>A cada 4 horas</option>
+                            <option value={6}>A cada 6 horas</option>
+                            <option value={8}>A cada 8 horas</option>
+                          </select>
                         </div>
-                        <div>
-                          <label className="block text-xs text-gray-600 mb-1">Fim</label>
-                          <input
-                            type="time"
-                            value={reminderEndTime}
-                            onChange={(e) => setReminderEndTime(e.target.value)}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
-                          />
+
+                        <div className="grid grid-cols-2 gap-3">
+                          <div>
+                            <label className="block text-xs text-gray-600 mb-1">Início</label>
+                            <input
+                              type="time"
+                              value={reminderStartTime}
+                              onChange={(e) => setReminderStartTime(e.target.value)}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-xs text-gray-600 mb-1">Fim</label>
+                            <input
+                              type="time"
+                              value={reminderEndTime}
+                              onChange={(e) => setReminderEndTime(e.target.value)}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
+                            />
+                          </div>
                         </div>
                       </div>
-                    </div>
+                    )}
                   </>
                 )}
 
-                {/* Save Button */}
+                {/* Botão Salvar */}
                 <button
                   onClick={() => {
-                    // Save to localStorage
-                    localStorage.setItem('reminderSettings', JSON.stringify({
-                      enabled: remindersEnabled,
-                      interval: reminderInterval,
-                      startTime: reminderStartTime,
-                      endTime: reminderEndTime
-                    }));
+                    // Aplicar configurações
+                    let settings;
+                    
+                    if (notificationPreset === '3x') {
+                      settings = { enabled: true, times: ['08:00', '14:00', '20:00'] };
+                    } else if (notificationPreset === '2x') {
+                      settings = { enabled: true, times: ['12:00', '20:00'] };
+                    } else if (notificationPreset === '1x') {
+                      settings = { enabled: true, times: ['20:00'] };
+                    } else if (notificationPreset === 'custom') {
+                      // Gerar horários baseado no intervalo
+                      const times = [];
+                      const [startHour, startMin] = reminderStartTime.split(':').map(Number);
+                      const [endHour, endMin] = reminderEndTime.split(':').map(Number);
+                      
+                      let currentMinutes = startHour * 60 + startMin;
+                      const endMinutes = endHour * 60 + endMin;
+                      const intervalMinutes = reminderInterval * 60;
+                      
+                      while (currentMinutes <= endMinutes) {
+                        const hours = Math.floor(currentMinutes / 60);
+                        const mins = currentMinutes % 60;
+                        times.push(`${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}`);
+                        currentMinutes += intervalMinutes;
+                      }
+                      
+                      settings = { enabled: true, times };
+                    } else {
+                      settings = { enabled: false, times: [] };
+                    }
+
+                    if (notificationPermission === 'granted' && settings.enabled) {
+                      NotificationManager.scheduleNotifications(settings);
+                    } else {
+                      NotificationManager.clearSchedule();
+                    }
+
+                    localStorage.setItem('notificationPreset', notificationPreset);
                     setShowSettings(false);
                   }}
                   className="w-full py-3 bg-gradient-to-r from-rose-500 to-orange-500 text-white rounded-xl font-semibold hover:shadow-lg transition-shadow"
                 >
-                  Salvar
+                  Salvar Configurações
                 </button>
               </div>
             </div>
