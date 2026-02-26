@@ -1004,7 +1004,7 @@ useEffect(() => {
                             onChange={(e) => setReminderInterval(parseFloat(e.target.value))}
                             className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
                           >
-                            <option value={0.25}>A cada 15 minutos</option>
+                            <option value={0.05}>A cada 3 minutos</option>
                             <option value={0.5}>A cada 30 minutos</option>
                             <option value={1}>A cada 1 hora</option>
                             <option value={2}>A cada 2 horas</option>
@@ -1052,6 +1052,9 @@ useEffect(() => {
                     };
                     localStorage.setItem('reminderSettings', JSON.stringify(dadosParaSalvar));
                     localStorage.setItem('notificationPreset', notificationPreset);
+                    localStorage.setItem('reminderInterval', reminderInterval);
+localStorage.setItem('reminderStartTime', reminderStartTime);
+localStorage.setItem('reminderEndTime', reminderEndTime);
 
                     // 2. Calculamos os horários das notificações
                     let settings;
