@@ -1041,11 +1041,20 @@ useEffect(() => {
                 )}
 
                 {/* Botão Salvar */}
-                <button
+ <button
                   onClick={() => {
-                    // Aplicar configurações
+                    // 1. Guardamos as configurações na memória do navegador
+                    const dadosParaSalvar = {
+                      interval: reminderInterval,
+                      startTime: reminderStartTime,
+                      endTime: reminderEndTime,
+                      preset: notificationPreset
+                    };
+                    localStorage.setItem('reminderSettings', JSON.stringify(dadosParaSalvar));
+                    localStorage.setItem('notificationPreset', notificationPreset);
+
+                    // 2. Calculamos os horários das notificações
                     let settings;
-                    
                     if (notificationPreset === '3x') {
                       settings = { enabled: true, times: ['08:00', '14:00', '20:00'] };
                     } else if (notificationPreset === '2x') {
@@ -1053,34 +1062,30 @@ useEffect(() => {
                     } else if (notificationPreset === '1x') {
                       settings = { enabled: true, times: ['20:00'] };
                     } else if (notificationPreset === 'custom') {
-                      // Gerar horários baseado no intervalo
                       const times = [];
                       const [startHour, startMin] = reminderStartTime.split(':').map(Number);
                       const [endHour, endMin] = reminderEndTime.split(':').map(Number);
-                      
                       let currentMinutes = startHour * 60 + startMin;
                       const endMinutes = endHour * 60 + endMin;
                       const intervalMinutes = reminderInterval * 60;
-                      
                       while (currentMinutes <= endMinutes) {
                         const hours = Math.floor(currentMinutes / 60);
                         const mins = currentMinutes % 60;
                         times.push(`${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}`);
                         currentMinutes += intervalMinutes;
                       }
-                      
                       settings = { enabled: true, times };
                     } else {
                       settings = { enabled: false, times: [] };
                     }
 
+                    // 3. Ativamos os lembretes
                     if (notificationPermission === 'granted' && settings.enabled) {
                       NotificationManager.scheduleNotifications(settings);
                     } else {
                       NotificationManager.clearSchedule();
                     }
 
-                    localStorage.setItem('notificationPreset', notificationPreset);
                     setShowSettings(false);
                   }}
                   className="w-full py-3 bg-gradient-to-r from-rose-500 to-orange-500 text-white rounded-xl font-semibold hover:shadow-lg transition-shadow"
