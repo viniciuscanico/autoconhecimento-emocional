@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Calendar, Activity, BarChart3 } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
-import NotificationManager from './utils/notificationManager';
-window.NotificationManager = NotificationManager;
+import FCMManager from './firebase/fcmManager';
 
 const MoodTracker = () => {
   const [activeTab, setActiveTab] = useState('register');
@@ -47,70 +46,46 @@ const MoodTracker = () => {
 
   // Initialize notifications on mount
 useEffect(() => {
-  const initNotifications = async () => {
-    const permission = NotificationManager.getPermissionStatus();
-    setNotificationPermission(permission);
-
-    const savedPreset = localStorage.getItem('notificationPreset') || '3x';
-    setNotificationPreset(savedPreset);
-
-    if (permission === 'default') {
-      const granted = await NotificationManager.requestPermission();
-      setNotificationPermission(granted ? 'granted' : 'denied');
-      
-      if (granted) {
-        NotificationManager.scheduleNotifications(NotificationManager.getDefaultSettings());
+  const inicializarFCM = async () => {
+    try {
+      const token = await FCMManager.requestPermissionAndGetToken();
+      if (token) {
+        await FCMManager.saveTokenToFirestore(token);
+        FCMManager.setupForegroundListener();
       }
-    } else if (permission === 'granted') {
-      NotificationManager.init();
+    } catch (error) {
+      console.error('Erro ao configurar FCM:', error);
     }
   };
-
-  initNotifications();
+  inicializarFCM();
 }, []);
 
-  // 9 MAIN EMOTIONS (4 positive + 1 neutral + 4 negative)
-  const mainMoods = [
-    { id: 'excited', emoji: '🤩', name: 'Empolgado', color: 'bg-yellow-200 border-yellow-400', intensity: 4 },
-    { id: 'happy', emoji: '😁', name: 'Feliz', color: 'bg-amber-200 border-amber-400', intensity: 3 },
-    { id: 'grateful', emoji: '🙏', name: 'Grato', color: 'bg-teal-200 border-teal-400', intensity: 2 },
-    { id: 'calm', emoji: '😌', name: 'Calmo', color: 'bg-green-200 border-green-400', intensity: 1 },
-    { id: 'neutral', emoji: '😐', name: 'Neutro', color: 'bg-slate-200 border-slate-400', intensity: 0 },
-    { id: 'bored', emoji: '😑', name: 'Entediado', color: 'bg-stone-200 border-stone-400', intensity: -1 },
-    { id: 'worried', emoji: '😟', name: 'Preocupado', color: 'bg-yellow-200 border-yellow-400', intensity: -2 },
-    { id: 'anxious', emoji: '😰', name: 'Ansioso', color: 'bg-purple-200 border-purple-400', intensity: -3 },
-    { id: 'sad', emoji: '😢', name: 'Triste', color: 'bg-blue-200 border-blue-400', intensity: -4 }
+  const allMoods = [
+    { id: 'pleno', emoji: '✨', name: 'Pleno(a)', value: 10, color: '#FF8C00' },
+    { id: 'empolgado', emoji: '🤩', name: 'Empolgado(a)', value: 9, color: '#FFD700' },
+    { id: 'orgulhoso', emoji: '😌', name: 'Orgulhoso(a)', value: 8, color: '#8A2BE2' },
+    { id: 'feliz', emoji: '😊', name: 'Feliz', value: 7, color: '#F0E68C' },
+    { id: 'amado', emoji: '🥰', name: 'Amado(a)', value: 6, color: '#FF00FF' },
+    { id: 'moido_feliz', emoji: '😅', name: 'Moído(a) mas feliz', value: 5, color: '#32CD32' },
+    { id: 'esperancoso', emoji: '🌱', name: 'Esperançoso(a)', value: 4, color: '#228B22' },
+    { id: 'grato', emoji: '🙏', name: 'Grato(a)', value: 3, color: '#FFB6C1' },
+    { id: 'contente', emoji: '🙂', name: 'Contente', value: 2, color: '#87CEEB' },
+    { id: 'calmo', emoji: '😌', name: 'Calmo(a)', value: 1, color: '#ADD8E6' },
+    { id: 'de_boa', emoji: '😶', name: 'De Boa', value: 0, color: '#D3D3D3' },
+    { id: 'entediado', emoji: '🥱', name: 'Entediado(a)', value: -1, color: '#A9A9A9' },
+    { id: 'cansado', emoji: '😮‍💨', name: 'Cansado(a)', value: -2, color: '#778899' },
+    { id: 'com_fome', emoji: '🤤', name: 'Com Fome', value: -3, color: '#8B4513' },
+    { id: 'ansioso', emoji: '😬', name: 'Ansioso(a)', value: -4, color: '#556B2F' },
+    { id: 'frustrado', emoji: '😤', name: 'Frustrado(a)', value: -5, color: '#B8860B' },
+    { id: 'chateado', emoji: '😕', name: 'Chateado(a)', value: -6, color: '#FF7F50' },
+    { id: 'triste', emoji: '😢', name: 'Triste', value: -7, color: '#8A8D91' },
+    { id: 'no_limite', emoji: '🤯', name: 'No Limite', value: -8, color: '#FF0000' },
+    { id: 'com_raiva', emoji: '😡', name: 'Com Raiva', value: -9, color: '#8B0000' },
+    { id: 'abatido', emoji: '🫠', name: 'Abatido(a)', value: -10, color: '#1E3A8A' },
   ];
 
-  // 21 COMPLETE EMOTIONS (10 positive + 1 neutral + 10 negative) - CABALÍSTICO
-  const allMoods = [
-    // POSITIVAS (10)
-    { id: 'ecstatic', emoji: '🤗', name: 'Radiante', color: 'bg-yellow-200 border-yellow-400', intensity: 10 },
-    { id: 'loved', emoji: '🥰', name: 'Amado', color: 'bg-pink-200 border-pink-400', intensity: 9 },
-    { id: 'joyful', emoji: '😄', name: 'Alegre', color: 'bg-orange-200 border-orange-400', intensity: 8 },
-    { id: 'excited', emoji: '🤩', name: 'Empolgado', color: 'bg-amber-200 border-amber-400', intensity: 7 },
-    { id: 'proud', emoji: '😊', name: 'Orgulhoso', color: 'bg-rose-200 border-rose-400', intensity: 6 },
-    { id: 'happy', emoji: '😁', name: 'Feliz', color: 'bg-yellow-200 border-yellow-400', intensity: 5 },
-    { id: 'hopeful', emoji: '🙂', name: 'Esperançoso', color: 'bg-sky-200 border-sky-400', intensity: 4 },
-    { id: 'grateful', emoji: '🙏', name: 'Grato', color: 'bg-teal-200 border-teal-400', intensity: 3 },
-    { id: 'content', emoji: '☺️', name: 'Contente', color: 'bg-emerald-200 border-emerald-400', intensity: 2 },
-    { id: 'calm', emoji: '😌', name: 'Calmo', color: 'bg-green-200 border-green-400', intensity: 1 },
-    
-    // NEUTRA (1)
-    { id: 'neutral', emoji: '😐', name: 'Neutro', color: 'bg-slate-200 border-slate-400', intensity: 0 },
-    
-    // NEGATIVAS (10)
-    { id: 'bored', emoji: '😑', name: 'Entediado', color: 'bg-stone-200 border-stone-400', intensity: -1 },
-    { id: 'tired', emoji: '😴', name: 'Cansado', color: 'bg-gray-200 border-gray-400', intensity: -2 },
-    { id: 'confused', emoji: '😕', name: 'Confuso', color: 'bg-orange-200 border-orange-400', intensity: -3 },
-    { id: 'worried', emoji: '😟', name: 'Preocupado', color: 'bg-yellow-200 border-yellow-400', intensity: -4 },
-    { id: 'anxious', emoji: '😰', name: 'Ansioso', color: 'bg-purple-200 border-purple-400', intensity: -5 },
-    { id: 'stressed', emoji: '😫', name: 'Estressado', color: 'bg-fuchsia-200 border-fuchsia-400', intensity: -6 },
-    { id: 'frustrated', emoji: '😤', name: 'Frustrado', color: 'bg-rose-200 border-rose-400', intensity: -7 },
-    { id: 'sad', emoji: '😢', name: 'Triste', color: 'bg-blue-200 border-blue-400', intensity: -8 },
-    { id: 'angry', emoji: '😠', name: 'Irritado', color: 'bg-red-200 border-red-400', intensity: -9 },
-    { id: 'depressed', emoji: '😞', name: 'Deprimido', color: 'bg-indigo-200 border-indigo-400', intensity: -10 }
-  ];
+  const mainMoodIds = ['empolgado', 'feliz', 'moido_feliz', 'calmo', 'de_boa', 'cansado', 'ansioso', 'frustrado', 'no_limite'];
+  const mainMoods = mainMoodIds.map(id => allMoods.find(m => m.id === id));
 
   const moods = showAllEmotions ? allMoods : mainMoods;
 
