@@ -338,11 +338,11 @@ useEffect(() => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-rose-50 via-orange-50 to-amber-50 flex items-center justify-center p-4 font-['Space_Grotesk']">
+    <div className="min-h-screen bg-gradient-to-br from-rose-50 via-orange-50 to-amber-50 font-['Space_Grotesk']">
       <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=DM+Serif+Display&display=swap" rel="stylesheet" />
       
       {/* CONTAINER MESTRE (CHASSI) - Dimensões travadas, overflow hidden */}
-      <div className="w-[375px] h-[812px] shrink-0 my-10 bg-white rounded-[2.5rem] shadow-2xl overflow-hidden flex flex-col transition-all duration-300">
+      <div className="w-full min-h-screen bg-white overflow-hidden flex flex-col transition-all duration-300">
         
         {/* Notification Toast - Positioned absolute inside chassis */}
         {showNotification && (
