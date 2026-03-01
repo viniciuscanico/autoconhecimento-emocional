@@ -11,8 +11,12 @@ const MoodTracker = () => {
   const [reportSubTab, setReportSubTab] = useState('frequency');
   const [graphPeriod, setGraphPeriod] = useState('daily');
   const [entries, setEntries] = useState([]);
-  const [showAllEmotions, setShowAllEmotions] = useState(false);
+  const [showAllEmotions, setShowAllEmotions] = useState(() => {
+    try { return localStorage.getItem('showAllEmotions') === 'true'; } catch { return false; }
+  });
   const [showSettings, setShowSettings] = useState(false);
+  const [clickedMood, setClickedMood] = useState(null);
+  const [isBlocked, setIsBlocked] = useState(false);
   
   // Settings state
   const [remindersEnabled, setRemindersEnabled] = useState(false);
@@ -90,8 +94,12 @@ useEffect(() => {
   const moods = showAllEmotions ? allMoods : mainMoods;
 
   const handleMoodSelect = (moodId) => {
+    if (isBlocked) return;
     const selectedMood = moods.find(m => m.id === moodId);
     if (!selectedMood) return;
+    setClickedMood(moodId);
+    setIsBlocked(true);
+    setTimeout(() => {
     
     const newEntry = {
       id: Date.now(),
@@ -110,11 +118,14 @@ useEffect(() => {
     
     setSelectedMoods([moodId]);
     setShowNotification(true);
-    
+
     setTimeout(() => {
+      setClickedMood(null);
+      setIsBlocked(false);
       setSelectedMoods([]);
       setShowNotification(false);
     }, 1500);
+  }, 1000);
   };
 
   const formatDate = (date) => {
@@ -388,16 +399,19 @@ useEffect(() => {
                   <button
                     key={mood.id}
                     onClick={() => handleMoodSelect(mood.id)}
+                    style={clickedMood === mood.id ? { backgroundColor: allMoods.find(m => m.id === mood.id)?.color + '44' } : {}}
                     className={`
                       border-2 rounded-xl p-2 flex flex-col items-center gap-1 transition-all duration-200
-                      ${selectedMoods.includes(mood.id) 
-                        ? `${mood.color} border-current scale-95 shadow-md` 
+                      ${clickedMood === mood.id
+                        ? 'border-current scale-95 shadow-md'
+                        : selectedMoods.includes(mood.id)
+                        ? 'border-current scale-95 shadow-md'
                         : 'bg-white border-gray-200 hover:border-gray-300 hover:shadow-sm active:scale-95'
                       }
                     `}
                   >
                     <span className="text-2xl">{mood.emoji}</span>
-                    <span className={`font-medium text-xs ${selectedMoods.includes(mood.id) ? 'text-gray-800' : 'text-gray-600'}`}>
+                    <span className={`font-medium text-xs ${clickedMood === mood.id || selectedMoods.includes(mood.id) ? 'text-gray-800' : 'text-gray-600'}`}>
                       {mood.name}
                     </span>
                   </button>
@@ -406,7 +420,11 @@ useEffect(() => {
 
               {/* Expand/Collapse Button */}
               <button
-                onClick={() => setShowAllEmotions(!showAllEmotions)}
+                onClick={() => {
+                  const next = !showAllEmotions;
+                  setShowAllEmotions(next);
+                  localStorage.setItem('showAllEmotions', next);
+                }}
                 className="w-full py-2.5 rounded-xl border-2 border-dashed border-gray-300 text-gray-600 hover:border-orange-400 hover:text-orange-600 transition-all text-sm font-medium"
               >
                 {showAllEmotions ? '− Menos emoções' : '+ Mais emoções'}
