@@ -799,7 +799,7 @@ useEffect(() => {
         </div>
 
         {/* RODAPÉ FIXO (flex-none) - Nunca rola */}
-        <div className="flex-none bg-white border-t border-gray-200 px-2 py-3">
+        <div className="fixed bottom-0 left-0 w-full bg-white border-t border-gray-200 px-2 py-3 z-50">
           <div className="flex gap-1">
             <button
               onClick={() => setActiveTab('register')}
