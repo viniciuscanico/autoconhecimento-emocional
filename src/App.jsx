@@ -65,9 +65,9 @@ useEffect(() => {
 }, []);
 
   const allMoods = [
-    { id: 'pleno', emoji: '✨', name: 'Pleno(a)', value: 10, color: '#FF8C00' },
+    { id: 'pleno', emoji: '✨', name: 'Pleno(a)', value: 10, color: '#8A2BE2' },
     { id: 'empolgado', emoji: '🤩', name: 'Empolgado(a)', value: 9, color: '#FFD700' },
-    { id: 'orgulhoso', emoji: '😌', name: 'Orgulhoso(a)', value: 8, color: '#8A2BE2' },
+    { id: 'orgulhoso', emoji: '😌', name: 'Orgulhoso(a)', value: 8, color: '#FF8C00' },
     { id: 'feliz', emoji: '😊', name: 'Feliz', value: 7, color: '#F0E68C' },
     { id: 'amado', emoji: '🥰', name: 'Amado(a)', value: 6, color: '#FF00FF' },
     { id: 'moido_feliz', emoji: '😅', name: 'Moído(a) mas feliz', value: 5, color: '#32CD32' },
@@ -75,7 +75,7 @@ useEffect(() => {
     { id: 'grato', emoji: '🙏', name: 'Grato(a)', value: 3, color: '#FFB6C1' },
     { id: 'contente', emoji: '🙂', name: 'Contente', value: 2, color: '#87CEEB' },
     { id: 'calmo', emoji: '😌', name: 'Calmo(a)', value: 1, color: '#ADD8E6' },
-    { id: 'de_boa', emoji: '😶', name: 'De Boa', value: 0, color: '#D3D3D3' },
+    { id: 'de_boa', emoji: '😏', name: 'De Boa', value: 0, color: '#B2F2BB' },
     { id: 'entediado', emoji: '🥱', name: 'Entediado(a)', value: -1, color: '#A9A9A9' },
     { id: 'cansado', emoji: '😮‍💨', name: 'Cansado(a)', value: -2, color: '#778899' },
     { id: 'com_fome', emoji: '🤤', name: 'Com Fome', value: -3, color: '#8B4513' },
@@ -85,7 +85,7 @@ useEffect(() => {
     { id: 'triste', emoji: '😢', name: 'Triste', value: -7, color: '#8A8D91' },
     { id: 'no_limite', emoji: '🤯', name: 'No Limite', value: -8, color: '#FF0000' },
     { id: 'com_raiva', emoji: '😡', name: 'Com Raiva', value: -9, color: '#8B0000' },
-    { id: 'abatido', emoji: '🫠', name: 'Abatido(a)', value: -10, color: '#1E3A8A' },
+    { id: 'abatido', emoji: '😩', name: 'Abatido(a)', value: -10, color: '#1E3A8A' },
   ];
 
   const mainMoodIds = ['empolgado', 'feliz', 'moido_feliz', 'calmo', 'de_boa', 'cansado', 'ansioso', 'frustrado', 'no_limite'];
@@ -661,7 +661,7 @@ useEffect(() => {
           )}
 
           {activeTab === 'graphs' && (
-            <div className="p-4 space-y-4 animate-[fadeIn_0.3s_ease-out] bg-white min-h-full">
+           <div className="p-4 space-y-4 animate-[fadeIn_0.3s_ease-out] bg-white">
               <h2 className="text-lg font-semibold text-gray-800">Gráficos</h2>
 
               {entries.length === 0 ? (
