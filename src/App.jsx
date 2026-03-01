@@ -179,7 +179,7 @@ useEffect(() => {
 
   const getMoodIntensity = (emoji) => {
     const mood = moods.find(m => m.emoji === emoji);
-    return mood ? mood.intensity : 0;
+    return mood ? mood.value : 0;
   };
 
   const getMoodName = (emoji) => {
@@ -865,7 +865,7 @@ useEffect(() => {
                     </p>
                     <button
                       onClick={async () => {
-                        const granted = await NotificationManager.requestPermission();
+                        const granted = false; // await NotificationManager.requestPermission();
                         setNotificationPermission(granted ? 'granted' : 'denied');
                       }}
                       className="w-full py-2 bg-amber-500 text-white rounded-lg text-sm font-semibold hover:bg-amber-600"
@@ -1077,9 +1077,9 @@ localStorage.setItem('reminderEndTime', reminderEndTime);
 
                     // 3. Ativamos os lembretes
                     if (notificationPermission === 'granted' && settings.enabled) {
-                      NotificationManager.scheduleNotifications(settings);
+                      // NotificationManager.scheduleNotifications(settings);
                     } else {
-                      NotificationManager.clearSchedule();
+                      // NotificationManager.clearSchedule();
                     }
 
                     setShowSettings(false);
