@@ -94,7 +94,7 @@ useEffect(() => {
   const moods = showAllEmotions ? allMoods : mainMoods;
 
   const handleMoodSelect = (moodId) => {
-    if (isBlocked) return;
+    //if (isBlocked) return;
     const selectedMood = moods.find(m => m.id === moodId);
     if (!selectedMood) return;
     setClickedMood(moodId);
@@ -703,7 +703,7 @@ useEffect(() => {
                   <div className="bg-white rounded-2xl p-4 border border-gray-200">
                     <h4 className="font-semibold text-gray-800 mb-3">Evolução de Humor</h4>
                     
-                    <ResponsiveContainer width="100%" height={520}>
+                    <ResponsiveContainer width="100%" height={400}>
                       <LineChart data={getTimelineData()} margin={{ top: 20, right: 20, left: 85, bottom: 20 }}>
                         <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
                         <XAxis dataKey="time" tick={{ fontSize: 10, fill: '#6b7280' }} />
