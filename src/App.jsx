@@ -178,7 +178,7 @@ useEffect(() => {
   };
 
   const getMoodIntensity = (emoji) => {
-    const mood = moods.find(m => m.emoji === emoji);
+    const mood = allMoods.find(m => m.emoji === emoji);
     return mood ? mood.value : 0;
   };
 
