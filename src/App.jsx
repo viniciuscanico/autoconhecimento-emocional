@@ -94,7 +94,7 @@ useEffect(() => {
   const moods = showAllEmotions ? allMoods : mainMoods;
 
   const handleMoodSelect = (moodId) => {
-    //if (isBlocked) return;
+    if (isBlocked) return;
     const selectedMood = moods.find(m => m.id === moodId);
     if (!selectedMood) return;
     setClickedMood(moodId);
@@ -124,7 +124,7 @@ useEffect(() => {
       setIsBlocked(false);
       setSelectedMoods([]);
       setShowNotification(false);
-    }, 1500);
+    }, 1000);
   }, 1000);
   };
 
@@ -385,10 +385,10 @@ useEffect(() => {
         </div>
 
         {/* CONTEÚDO CENTRAL (flex-1 + overflow-y-auto) - ÚNICA área que rola */}
-        <div className="flex-1 overflow-y-auto bg-gray-50 pb-20">
+        <div className="flex-1 overflow-y-auto bg-gray-50 pb-20 flex flex-col">
           
           {activeTab === 'register' && (
-            <div className="p-4 bg-white min-h-full flex flex-col justify-center animate-[fadeIn_0.3s_ease-out]">
+            <div className="p-4 bg-white flex-1 flex flex-col justify-center animate-[fadeIn_0.3s_ease-out]">
               <div className="space-y-3">
                 <h2 className="text-base font-semibold text-gray-800 text-center">
                   Como você está se sentindo aqui e agora?
@@ -518,29 +518,7 @@ useEffect(() => {
                           const percentage = (count / maxCount) * 100;
                           const mood = allMoods.find(m => m.emoji === emoji);
                           
-                          // Extract color from Tailwind class (e.g., 'bg-amber-200' -> '#fbbf24')
-                          const colorMap = {
-                            'yellow': '#fbbf24',
-                            'pink': '#ec4899',
-                            'orange': '#fb923c',
-                            'amber': '#fbbf24',
-                            'rose': '#fb7185',
-                            'teal': '#14b8a6',
-                            'sky': '#38bdf8',
-                            'emerald': '#10b981',
-                            'green': '#22c55e',
-                            'slate': '#94a3b8',
-                            'stone': '#a8a29e',
-                            'gray': '#9ca3af',
-                            'purple': '#a855f7',
-                            'fuchsia': '#d946ef',
-                            'blue': '#3b82f6',
-                            'red': '#ef4444',
-                            'indigo': '#6366f1'
-                          };
-                          
-                          const colorKey = mood ? mood.color.split('-')[1] : 'gray';
-                          const barColor = colorMap[colorKey] || '#9ca3af';
+                          const barColor = mood ? mood.color : '#9ca3af';
                           
                           return (
                             <div key={emoji} className="space-y-1">
@@ -704,11 +682,11 @@ useEffect(() => {
                     <h4 className="font-semibold text-gray-800 mb-3">Evolução de Humor</h4>
                     
                     <ResponsiveContainer width="100%" height={520}>
-                      <LineChart data={getTimelineData()} margin={{ top: 20, right: 20, left: 85, bottom: 20 }}>
+                      <LineChart data={getTimelineData()} margin={{ top: 10, right: 10, left: 10, bottom: 10 }}>
                         <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
                         <XAxis dataKey="time" tick={{ fontSize: 10, fill: '#6b7280' }} />
                         <YAxis 
-                          domain={[-11, 11]}
+                          domain={[-10, 10]}
                           ticks={[10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0, -1, -2, -3, -4, -5, -6, -7, -8, -9, -10]}
                           interval={0}
                           tick={(props) => {
@@ -756,12 +734,12 @@ useEffect(() => {
                             if (active && payload && payload.length) {
                               const value = payload[0].value;
                               const emotionMap = {
-                                10: 'Radiante', 9: 'Amado', 8: 'Alegre', 7: 'Empolgado', 6: 'Orgulhoso',
-                                5: 'Feliz', 4: 'Esperançoso', 3: 'Grato', 2: 'Contente', 1: 'Calmo',
-                                0: 'Neutro',
-                                '-1': 'Entediado', '-2': 'Cansado', '-3': 'Confuso', '-4': 'Preocupado',
-                                '-5': 'Ansioso', '-6': 'Estressado', '-7': 'Frustrado', '-8': 'Triste',
-                                '-9': 'Irritado', '-10': 'Deprimido'
+                                10: 'Pleno', 9: 'Empolgada(o)', 8: 'Orgulhosa(o)', 7: 'Feliz', 6: 'Amada(o)',
+                              5: 'Moída(o) mas Feliz', 4: 'Esperançosa(o)', 3: 'Grata(o)', 2: 'Contente', 1: 'Calma(o)',
+                              0: 'De Boa',
+                              '-1': 'Entediada(o)', '-2': 'Cansada(o)', '-3': 'Com fome', '-4': 'Ansiosa(o)',
+                              '-5': 'Frustrada(o)', '-6': 'chateada(o)', '-7': 'Triste', '-8': 'No Limite',
+                              '-9': 'Com raiva', '-10': 'Abatida(o)'
                               };
                               return (
                                 <div className="bg-white px-3 py-2 rounded-lg shadow-lg border">
@@ -772,7 +750,7 @@ useEffect(() => {
                             return null;
                           }}
                         />
-                        <ReferenceLine y={0} stroke="#374151" strokeWidth={2} label="NEUTRO" />
+                        
                         <Line 
                           type="monotone"
                           dataKey="intensidade"
@@ -784,6 +762,7 @@ useEffect(() => {
                             return <circle cx={cx} cy={cy} r={4} fill={color} stroke="#fff" strokeWidth={2} />;
                           }}
                         />
+                        <ReferenceLine y={0} stroke="#39a7e6" strokeWidth={2} label="No caminho" />
                       </LineChart>
                     </ResponsiveContainer>
 
