@@ -74,7 +74,7 @@ useEffect(() => {
     { id: 'esperancoso', emoji: '🌱', name: 'Esperançoso(a)', value: 4, color: '#228B22' },
     { id: 'grato', emoji: '🙏', name: 'Grato(a)', value: 3, color: '#FFB6C1' },
     { id: 'contente', emoji: '🙂', name: 'Contente', value: 2, color: '#87CEEB' },
-    { id: 'calmo', emoji: '😌', name: 'Calmo(a)', value: 1, color: '#ADD8E6' },
+    { id: 'calmo', emoji: '🧘', name: 'Calmo(a)', value: 1, color: '#ADD8E6' },
     { id: 'de_boa', emoji: '😏', name: 'De Boa', value: 0, color: '#B2F2BB' },
     { id: 'entediado', emoji: '🥱', name: 'Entediado(a)', value: -1, color: '#A9A9A9' },
     { id: 'cansado', emoji: '😮‍💨', name: 'Cansado(a)', value: -2, color: '#778899' },
@@ -385,7 +385,7 @@ useEffect(() => {
         </div>
 
         {/* CONTEÚDO CENTRAL (flex-1 + overflow-y-auto) - ÚNICA área que rola */}
-        <div className="flex-1 overflow-y-auto bg-gray-50">
+        <div className="flex-1 overflow-y-auto bg-gray-50 pb-20">
           
           {activeTab === 'register' && (
             <div className="p-4 bg-white min-h-full flex flex-col justify-center animate-[fadeIn_0.3s_ease-out]">
@@ -703,22 +703,23 @@ useEffect(() => {
                   <div className="bg-white rounded-2xl p-4 border border-gray-200">
                     <h4 className="font-semibold text-gray-800 mb-3">Evolução de Humor</h4>
                     
-                    <ResponsiveContainer width="100%" height={600}>
+                    <ResponsiveContainer width="100%" height={520}>
                       <LineChart data={getTimelineData()} margin={{ top: 20, right: 20, left: 85, bottom: 20 }}>
                         <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
                         <XAxis dataKey="time" tick={{ fontSize: 10, fill: '#6b7280' }} />
                         <YAxis 
                           domain={[-11, 11]}
                           ticks={[10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0, -1, -2, -3, -4, -5, -6, -7, -8, -9, -10]}
+                          interval={0}
                           tick={(props) => {
                             const { x, y, payload } = props;
                             const emotionMap = {
-                              10: 'Radiante', 9: 'Amado', 8: 'Alegre', 7: 'Empolgado', 6: 'Orgulhoso',
-                              5: 'Feliz', 4: 'Esperançoso', 3: 'Grato', 2: 'Contente', 1: 'Calmo',
-                              0: 'Neutro',
-                              '-1': 'Entediado', '-2': 'Cansado', '-3': 'Confuso', '-4': 'Preocupado',
-                              '-5': 'Ansioso', '-6': 'Estressado', '-7': 'Frustrado', '-8': 'Triste',
-                              '-9': 'Irritado', '-10': 'Deprimido'
+                              10: 'Pleno', 9: 'Empolgada(o)', 8: 'Orgulhosa(o)', 7: 'Feliz', 6: 'Amada(o)',
+                              5: 'Moída(o) mas Feliz', 4: 'Esperançosa(o)', 3: 'Grata(o)', 2: 'Contente', 1: 'Calma(o)',
+                              0: 'De Boa',
+                              '-1': 'Entediada(o)', '-2': 'Cansada(o)', '-3': 'Com fome', '-4': 'Ansiosa(o)',
+                              '-5': 'Frustrada(o)', '-6': 'chateada(o)', '-7': 'Triste', '-8': 'No Limite',
+                              '-9': 'Com raiva', '-10': 'Abatida(o)'
                             };
                             const label = emotionMap[payload.value];
                             const isNeutral = payload.value === 0;
