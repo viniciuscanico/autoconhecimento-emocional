@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Calendar, Activity, BarChart3 } from 'lucide-react';
+import { Calendar, BarChart3, Activity } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
 import FCMManager from './firebase/fcmManager';
+import { onAuthChange, logout } from './firebase/authManager';
+import LoginScreen from './components/LoginScreen';
 
 const MoodTracker = () => {
   const [activeTab, setActiveTab] = useState('register');
@@ -17,6 +19,8 @@ const MoodTracker = () => {
   const [showSettings, setShowSettings] = useState(false);
   const [clickedMood, setClickedMood] = useState(null);
   const [isBlocked, setIsBlocked] = useState(false);
+
+  
   
   // Settings state
   const [remindersEnabled, setRemindersEnabled] = useState(false);
@@ -25,6 +29,16 @@ const MoodTracker = () => {
   const [reminderEndTime, setReminderEndTime] = useState('22:00');
   const [notificationPermission, setNotificationPermission] = useState('default');
   const [notificationPreset, setNotificationPreset] = useState('3x');
+  const [user, setUser] = useState(null);
+  const [authLoading, setAuthLoading] = useState(true);
+
+  useEffect(() => {
+  const unsubscribe = onAuthChange((firebaseUser) => {
+    setUser(firebaseUser);
+    setAuthLoading(false);
+  });
+  return () => unsubscribe();
+  }, []);
 
   // Load entries from localStorage on mount
   useEffect(() => {
@@ -348,6 +362,16 @@ useEffect(() => {
         : []
     }));
   };
+
+  // AUTH — Se ainda está verificando login, mostra tela de carregamento
+if (authLoading) return (
+  <div className="min-h-screen flex items-center justify-center bg-gray-50">
+    <p className="text-gray-400 text-sm animate-pulse">Verificando acesso...</p>
+  </div>
+);
+
+// AUTH — Se não há usuário logado, mostra tela de login
+if (!user) return <LoginScreen />;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-rose-50 via-orange-50 to-amber-50 font-['Space_Grotesk']">
@@ -1056,13 +1080,7 @@ localStorage.setItem('reminderEndTime', reminderEndTime);
                       settings = { enabled: false, times: [] };
                     }
 
-                    // 3. Ativamos os lembretes
-                    if (notificationPermission === 'granted' && settings.enabled) {
-                      // NotificationManager.scheduleNotifications(settings);
-                    } else {
-                      // NotificationManager.clearSchedule();
-                    }
-
+                   
                     setShowSettings(false);
                   }}
                   className="w-full py-3 bg-gradient-to-r from-rose-500 to-orange-500 text-white rounded-xl font-semibold hover:shadow-lg transition-shadow"
