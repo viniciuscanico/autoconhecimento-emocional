@@ -4,6 +4,7 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import FCMManager from './firebase/fcmManager';
 import { onAuthChange, logout } from './firebase/authManager';
 import LoginScreen from './components/LoginScreen';
+import { saveEntry, getEntries, migrateFromLocalStorage } from './firebase/firestoreManager';
 
 const MoodTracker = () => {
   const [activeTab, setActiveTab] = useState('register');
@@ -40,13 +41,34 @@ const MoodTracker = () => {
   return () => unsubscribe();
   }, []);
 
-  // Load entries from localStorage on mount
+  // ==========================================
+  // CARREGAMENTO DE DADOS (NUVEM + MIGRAÇÃO)
+  // ==========================================
   useEffect(() => {
-    try {
-      const saved = localStorage.getItem('moodTrackerEntries');
-      if (saved) {
-        setEntries(JSON.parse(saved));
+    if (!user) return;
+
+    const carregarDadosIniciais = async () => {
+      try {
+        await migrateFromLocalStorage(user.uid);
+        const dadosNuvem = await getEntries(user.uid);
+        setEntries(dadosNuvem);
+
+        // Carrega configurações de lembretes locais
+        const savedSettings = localStorage.getItem('reminderSettings');
+        if (savedSettings) {
+          const settings = JSON.parse(savedSettings);
+          setRemindersEnabled(settings.enabled || false);
+          setReminderInterval(settings.interval || 3);
+          setReminderStartTime(settings.startTime || '08:00');
+          setReminderEndTime(settings.endTime || '22:00');
+        }
+      } catch (error) {
+        console.error('Erro ao sincronizar com a nuvem:', error);
       }
+    };
+
+    carregarDadosIniciais();
+  }, [user]);
       
       // Load reminder settings
       const savedSettings = localStorage.getItem('reminderSettings');
@@ -56,11 +78,7 @@ const MoodTracker = () => {
         setReminderInterval(settings.interval || 3);
         setReminderStartTime(settings.startTime || '08:00');
         setReminderEndTime(settings.endTime || '22:00');
-      }
-    } catch (error) {
-      console.error('Error loading data:', error);
-    }
-  }, []);
+ np     }
 
   // Initialize notifications on mount
 useEffect(() => {
@@ -124,11 +142,10 @@ useEffect(() => {
     
     const updatedEntries = [newEntry, ...entries];
     setEntries(updatedEntries);
-    
-    try {
-      localStorage.setItem('moodTrackerEntries', JSON.stringify(updatedEntries));
-    } catch (error) {
-      console.error('Error saving:', error);
+
+    // FIRESTORE — Salva entrada na nuvem
+    if (user) {
+      saveEntry(user.uid, newEntry).catch(e => console.error('Erro ao salvar no Firestore:', e));
     }
     
     setSelectedMoods([moodId]);
