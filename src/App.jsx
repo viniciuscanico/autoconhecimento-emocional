@@ -95,6 +95,7 @@ useEffect(() => {
 
   const handleMoodSelect = (moodId) => {
     if (isBlocked) return;
+    new Audio('/gota.mp3').play().catch(e => console.log('Áudio não tocou:', e));
     const selectedMood = moods.find(m => m.id === moodId);
     if (!selectedMood) return;
     setClickedMood(moodId);
@@ -124,8 +125,8 @@ useEffect(() => {
       setIsBlocked(false);
       setSelectedMoods([]);
       setShowNotification(false);
-    }, 1000);
-  }, 1000);
+    }, 500);
+  }, 500);
   };
 
   const formatDate = (date) => {
